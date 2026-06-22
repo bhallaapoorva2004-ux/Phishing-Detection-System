@@ -3,39 +3,42 @@ import pandas as pd
 import joblib
 import re
 from urllib.parse import urlparse
-def extract_features(url):
 
-    parsed = urlparse(url)
+# LOAD MODELS
+model = joblib.load("phishing_detector.pkl")
+pca = joblib.load("pca.pkl")
+scaler = joblib.load("scaler.pkl")
 
-    features = []
+st.title("🔐 Phishing Detection System")
 
-    # 1. URL Length
-    features.append(len(url))
+# ======================
+# INPUT BOX (IMPORTANT)
+# ======================
 
-    # 2. Number of dots
-    features.append(url.count("."))
+url = st.text_input("Enter URL to check")
 
-    # 3. Number of slashes
-    features.append(url.count("/"))
-
-    # 4. Number of special characters
-    features.append(len(re.findall(r'[?&=%@]', url)))
-
-    # 5. Has HTTPS
-    features.append(1 if parsed.scheme == "https" else 0)
-
-    # 6. Domain length
-    features.append(len(parsed.netloc))
-
-    return features
-    url = st.text_input("Enter URL to check")
+# ======================
+# BUTTON
+# ======================
 
 if st.button("Predict"):
 
-    if url:
+    if url == "":
+        st.warning("Please enter a URL first")
 
-        # convert URL → features
-        features = extract_features(url)
+    else:
+
+        # Feature extraction
+        parsed = urlparse(url)
+
+        features = [
+            len(url),
+            url.count("."),
+            url.count("/"),
+            len(re.findall(r'[?&=%@]', url)),
+            1 if parsed.scheme == "https" else 0,
+            len(parsed.netloc)
+        ]
 
         sample = pd.DataFrame([features], columns=[
             "URLLength",
@@ -46,18 +49,20 @@ if st.button("Predict"):
             "DomainLength"
         ])
 
-        # scaling + PCA
+        # Prediction pipeline
         sample_scaled = scaler.transform(sample)
         sample_pca = pca.transform(sample_scaled)
 
-        # prediction
         pred = model.predict(sample_pca)[0]
         prob = model.predict_proba(sample_pca)[0][1]
 
+        # OUTPUT
+        st.subheader("Result")
+
         st.write("URL:", url)
-        st.write("Risk Score:", round(prob*100,2), "%")
+        st.write("Risk Score:", round(prob * 100, 2), "%")
 
         if pred == 1:
-            st.error("PHISHING URL 🚨")
+            st.error("🚨 PHISHING URL")
         else:
-            st.success("LEGITIMATE URL ✅")
+            st.success("✅ LEGITIMATE URL")
