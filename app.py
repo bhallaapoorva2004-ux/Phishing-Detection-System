@@ -14,7 +14,7 @@ scaler = joblib.load("scaler.pkl")
 # LOAD DATASET
 # ==================================================
 
-df = pd.read_csv("PhiUSIIL_Phishing_URL_Dataset.csv")
+df = pd.read_csv("sample_dataset.csv")
 
 # ==================================================
 # FEATURES
