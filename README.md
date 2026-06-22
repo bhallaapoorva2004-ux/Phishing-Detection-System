@@ -1,116 +1,88 @@
-import streamlit as st
-import pandas as pd
-import joblib
+# Phishing Detection System (ML + Streamlit)
 
-# ==================================================
-# LOAD MODEL + PREPROCESSORS
-# ==================================================
+A Machine Learning based Phishing URL Detection System that classifies URLs as Phishing or Legitimate using XGBoost, PCA, and behavioral analysis. The system is deployed using Streamlit.
 
-model = joblib.load("phishing_detector.pkl")
-pca = joblib.load("pca.pkl")
-scaler = joblib.load("scaler.pkl")
+## Live Demo
+https://your-streamlit-app-link.streamlit.app
 
-# ==================================================
-# LOAD DATASET
-# ==================================================
+## Project Overview
+This project detects phishing URLs using machine learning. It analyzes URL structure, domain features, and behavior patterns to predict whether a URL is safe or malicious.
 
-df = pd.read_csv("sample_dataset.csv")
+## Features
+- Phishing / Legitimate classification
+- Risk score (0–100%)
+- Behavioral analysis
+- URL display with clickable link
+- Feature inspection
 
-# Features (same as training)
-X = df.drop(["URL", "Domain", "Title", "TLD", "label"], axis=1)
+## Machine Learning Pipeline
+Dataset → Preprocessing → Scaling → PCA → XGBoost Model → Prediction
 
-# ==================================================
-# UI
-# ==================================================
+## Features Used
+- URL Length
+- Domain Length
+- NoOfJS
+- NoOfCSS
+- URL Similarity Index
+- Special Characters
+- HTTPS usage
+- External references
 
-st.title("🔐 Phishing Detection System")
+## Project Structure
+Phishing-Detection-System/
+- app.py
+- phishing_detector.pkl
+- pca.pkl
+- scaler.pkl
+- sample_dataset.csv
+- requirements.txt
+- README.md
 
-row = st.number_input(
-    "Enter Row Number",
-    min_value=0,
-    max_value=len(df)-1,
-    value=0
-)
+## How It Works
+1. User selects row number
+2. System extracts features
+3. Data is scaled and transformed using PCA
+4. XGBoost model predicts result
+5. Risk score is generated
+6. Behavioral analysis explains result
+7. Final decision (ALLOW / BLOCK)
 
-# ==================================================
-# PREDICTION
-# ==================================================
+## Behavioral Analysis
 
-if st.button("Predict"):
+Phishing URLs:
+- Long and complex URLs
+- Multiple subdomains
+- High special characters
+- Fake login pages
+- High JavaScript usage
 
-    # select sample
-    sample = X.iloc[[row]]
+Legitimate URLs:
+- Short and clean URLs
+- Trusted domains
+- HTTPS enabled
+- Minimal suspicious behavior
 
-    # preprocessing
-    sample_scaled = scaler.transform(sample)
-    sample_pca = pca.transform(sample_scaled)
+## Output Example
+URL: https://example.com/login
 
-    # prediction
-    prediction = model.predict(sample_pca)[0]
-    risk_score = model.predict_proba(sample_pca)[0][1]
+Prediction: PHISHING  
+Risk Score: 97.3%
 
-    # ==================================================
-    # SHOW URL
-    # ==================================================
+Behavioral Analysis:
+- Long URL detected
+- High JS usage
+- Suspicious domain pattern
 
-    st.subheader("🌐 Selected URL")
-    st.write(df.iloc[row]["URL"])
+Recommended Action: BLOCK
 
-    st.markdown(
-        f"[🔗 Open URL]({df.iloc[row]['URL']})"
-    )
+## Tech Stack
+Python, Pandas, Scikit-learn, XGBoost, Streamlit, Joblib
 
-    # ==================================================
-    # RESULT
-    # ==================================================
+## Author
+Apoorva Bhalla
 
-    st.subheader("📊 Prediction Result")
-
-    st.write("Risk Score:", round(risk_score * 100, 2), "%")
-
-    if prediction == 1:
-        st.error("🚨 PHISHING URL DETECTED")
-        action = "BLOCK"
-    else:
-        st.success("✅ LEGITIMATE URL")
-        action = "ALLOW"
-
-    st.write("Recommended Action:", action)
-
-    # ==================================================
-    # BEHAVIORAL ANALYSIS
-    # ==================================================
-
-    st.subheader("🧠 Behavioral Analysis")
-
-    behavior = []
-
-    if "URLLength" in sample.columns:
-        if sample["URLLength"].values[0] > 60:
-            behavior.append("Long URL structure detected")
-
-    if "DomainLength" in sample.columns:
-        if sample["DomainLength"].values[0] > 20:
-            behavior.append("Suspiciously long domain name")
-
-    if "NoOfJS" in sample.columns:
-        if sample["NoOfJS"].values[0] > 10:
-            behavior.append("High JavaScript usage detected")
-
-    if "NoOfCSS" in sample.columns:
-        if sample["NoOfCSS"].values[0] > 5:
-            behavior.append("High CSS resource usage")
-
-    if len(behavior) == 0:
-        st.success("No major suspicious behavior detected.")
-    else:
-        for b in behavior:
-            st.write("•", b)
-
-    # ==================================================
-    # FEATURE VIEW
-    # ==================================================
-
-    st.subheader("📌 Feature Values")
-
-    st.dataframe(sample.T)
+## Future Improvements
+- Real-time URL input
+- Email phishing detection
+- API deployment
+- Advanced dashboard
