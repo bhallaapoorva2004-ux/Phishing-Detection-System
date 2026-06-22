@@ -3,7 +3,7 @@
 A Machine Learning based Phishing URL Detection System that classifies URLs as Phishing or Legitimate using XGBoost, PCA, and behavioral analysis. The system is deployed using Streamlit.
 
 ## Live Demo
-https://your-streamlit-app-link.streamlit.app
+[https://your-streamlit-app-link.streamlit.app](https://phishing-detection-system-ugdm4wgpricaz46yxgywhm.streamlit.app/)
 
 ## Project Overview
 This project detects phishing URLs using machine learning. It analyzes URL structure, domain features, and behavior patterns to predict whether a URL is safe or malicious.
