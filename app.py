@@ -1,51 +1,60 @@
-import streamlit as st
-import pandas as pd
-import joblib
+import re
+from urllib.parse import urlparse
+def extract_features(url):
 
-# Load model
-model = joblib.load("phishing_detector.pkl")
-pca = joblib.load("pca.pkl")
-scaler = joblib.load("scaler.pkl")
+    parsed = urlparse(url)
 
-st.title("🔐 Phishing Detection System (Live URL)")
+    features = []
 
-# =========================
-# USER INPUT (NEW PART)
-# =========================
+    # 1. URL Length
+    features.append(len(url))
 
-url = st.text_input("Enter URL to Test")
+    # 2. Number of dots
+    features.append(url.count("."))
 
-# =========================
-# BUTTON
-# =========================
+    # 3. Number of slashes
+    features.append(url.count("/"))
+
+    # 4. Number of special characters
+    features.append(len(re.findall(r'[?&=%@]', url)))
+
+    # 5. Has HTTPS
+    features.append(1 if parsed.scheme == "https" else 0)
+
+    # 6. Domain length
+    features.append(len(parsed.netloc))
+
+    return features
+    url = st.text_input("Enter URL to check")
 
 if st.button("Predict"):
 
-    if url == "":
-        st.warning("Please enter a URL")
-    else:
+    if url:
 
-        # ⚠️ IMPORTANT:
-        # yaha tumhe feature extraction add karni hogi
-        # abhi dummy example de raha hoon
+        # convert URL → features
+        features = extract_features(url)
 
-        sample = pd.DataFrame([[len(url), url.count("."), url.count("/"), url.count("?")]],
-                              columns=["URLLength","DotCount","SlashCount","QueryCount"])
+        sample = pd.DataFrame([features], columns=[
+            "URLLength",
+            "DotCount",
+            "SlashCount",
+            "SpecialCharCount",
+            "HTTPS",
+            "DomainLength"
+        ])
 
         # scaling + PCA
         sample_scaled = scaler.transform(sample)
         sample_pca = pca.transform(sample_scaled)
 
         # prediction
-        prediction = model.predict(sample_pca)[0]
-        risk = model.predict_proba(sample_pca)[0][1]
-
-        st.subheader("Result")
+        pred = model.predict(sample_pca)[0]
+        prob = model.predict_proba(sample_pca)[0][1]
 
         st.write("URL:", url)
-        st.write("Risk Score:", round(risk * 100, 2), "%")
+        st.write("Risk Score:", round(prob*100,2), "%")
 
-        if prediction == 1:
-            st.error("🚨 PHISHING URL")
+        if pred == 1:
+            st.error("PHISHING URL 🚨")
         else:
-            st.success("✅ LEGITIMATE URL")
+            st.success("LEGITIMATE URL ✅")
