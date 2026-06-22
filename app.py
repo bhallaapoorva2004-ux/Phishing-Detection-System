@@ -3,7 +3,9 @@ import pandas as pd
 import joblib
 
 # ==================================================
+
 # LOAD MODEL FILES
+
 # ==================================================
 
 model = joblib.load("phishing_detector.pkl")
@@ -11,119 +13,160 @@ pca = joblib.load("pca.pkl")
 scaler = joblib.load("scaler.pkl")
 
 # ==================================================
+
 # LOAD DATASET
+
 # ==================================================
 
 df = pd.read_csv("sample_dataset.csv")
 
 # ==================================================
+
 # FEATURES
+
 # ==================================================
 
 X = df.drop(
-    ["URL", "Domain", "Title", "TLD", "label"],
-    axis=1
+["URL", "Domain", "Title", "TLD", "label"],
+axis=1
 )
 
 # ==================================================
+
 # UI
+
 # ==================================================
 
-st.title("Phishing Detection System")
+st.title("🔐 Phishing Detection System")
+
+st.subheader("📊 Dataset Source")
+
+st.markdown(
+"[Open Dataset Here](https://1drv.ms/x/c/e3b2ffe9b0de6239/IQB7jGG3gDBfSpz2jMFd_JnCAVBL6_7OBwRq6ewe3sEQjUQ?e=edtrbV)"
+)
 
 row = st.number_input(
-    "Enter Row Number",
-    min_value=0,
-    max_value=len(df)-1,
-    value=0
+"Enter Row Number",
+min_value=0,
+max_value=len(df) - 1,
+value=0
 )
 
 # ==================================================
+
 # PREDICTION
+
 # ==================================================
 
 if st.button("Predict"):
 
-    sample = X.iloc[[row]]
+```
+sample = X.iloc[[row]]
 
-    # Scaling
-    sample_scaled = scaler.transform(sample)
+# ==================================================
+# SHOW URL
+# ==================================================
 
-    # PCA
-    sample_pca = pca.transform(sample_scaled)
+st.subheader("🌐 Selected URL")
 
-    # Prediction
-    prediction = model.predict(sample_pca)[0]
+selected_url = df.iloc[row]["URL"]
 
-    # Risk Score
-    risk_score = model.predict_proba(sample_pca)[0][1]
+st.write(selected_url)
 
-    st.subheader("Prediction Results")
+st.markdown(
+    f"[🔗 Open URL]({selected_url})"
+)
 
-    st.write(
-        "Risk Score:",
-        round(risk_score * 100, 2),
-        "%"
-    )
+# ==================================================
+# SHOW ACTUAL LABEL
+# ==================================================
 
-    if prediction == 1:
+st.subheader("📌 Actual Dataset Label")
 
-        st.error("PHISHING URL DETECTED")
+actual_label = df.iloc[row]["label"]
 
-        action = "BLOCK"
+if actual_label == 1:
+    st.error("Dataset Label: PHISHING")
+else:
+    st.success("Dataset Label: LEGITIMATE")
 
-    else:
+# ==================================================
+# MODEL PREDICTION
+# ==================================================
 
-        st.success("LEGITIMATE URL")
+sample_scaled = scaler.transform(sample)
 
-        action = "ALLOW"
+sample_pca = pca.transform(sample_scaled)
 
-    st.write("Recommended Action:", action)
+prediction = model.predict(sample_pca)[0]
 
-    # ==================================================
-    # BEHAVIORAL ANALYSIS
-    # ==================================================
+risk_score = model.predict_proba(sample_pca)[0][1]
 
-    st.subheader("Behavioral Analysis")
+st.subheader("📊 Prediction Result")
 
-    behavior = []
+st.write(
+    "Risk Score:",
+    round(risk_score * 100, 2),
+    "%"
+)
 
-    if "URLLength" in sample.columns:
-        if sample["URLLength"].values[0] > 60:
-            behavior.append(
-                "Long URL structure detected"
-            )
+if prediction == 1:
 
-    if "DomainLength" in sample.columns:
-        if sample["DomainLength"].values[0] > 20:
-            behavior.append(
-                "Suspiciously long domain name"
-            )
+    st.error("🚨 PHISHING URL DETECTED")
 
-    if "NoOfJS" in sample.columns:
-        if sample["NoOfJS"].values[0] > 10:
-            behavior.append(
-                "Heavy JavaScript usage detected"
-            )
+    action = "BLOCK"
 
-    if len(behavior) == 0:
+else:
 
-        st.success(
-            "No major suspicious behavior detected."
+    st.success("✅ LEGITIMATE URL")
+
+    action = "ALLOW"
+
+st.write("Recommended Action:", action)
+
+# ==================================================
+# BEHAVIORAL ANALYSIS
+# ==================================================
+
+st.subheader("🧠 Behavioral Analysis")
+
+behavior = []
+
+if "URLLength" in sample.columns:
+    if sample["URLLength"].values[0] > 60:
+        behavior.append(
+            "Long URL structure detected"
         )
 
-    else:
+if "DomainLength" in sample.columns:
+    if sample["DomainLength"].values[0] > 20:
+        behavior.append(
+            "Suspiciously long domain name"
+        )
 
-        for item in behavior:
+if "NoOfJS" in sample.columns:
+    if sample["NoOfJS"].values[0] > 10:
+        behavior.append(
+            "Heavy JavaScript usage detected"
+        )
 
-            st.write("•", item)
+if len(behavior) == 0:
 
-    # ==================================================
-    # FEATURE VALUES
-    # ==================================================
+    st.success(
+        "No major suspicious behavior detected."
+    )
 
-    st.subheader("Selected URL Features")
+else:
 
-    st.dataframe(sample.T)
-    st.subheader("📊 Dataset Source (Spreadsheet)")
-st.markdown("[Open Dataset Here](https://1drv.ms/x/c/e3b2ffe9b0de6239/IQB7jGG3gDBfSpz2jMFd_JnCAVBL6_7OBwRq6ewe3sEQjUQ?e=edtrbV")
+    for item in behavior:
+
+        st.write("•", item)
+
+# ==================================================
+# FEATURE VALUES
+# ==================================================
+
+st.subheader("📌 Feature Values")
+
+st.dataframe(sample.T)
+```
