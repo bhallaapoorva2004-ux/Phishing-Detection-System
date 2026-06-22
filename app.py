@@ -14,7 +14,8 @@ scaler = joblib.load("scaler.pkl")
 # LOAD DATASET
 # ==================================================
 
-df = pd.read_excel("dataset.xlsx")
+df = pd.read_csv("sample_dataset.csv")
+
 # ==================================================
 # FEATURES
 # ==================================================
